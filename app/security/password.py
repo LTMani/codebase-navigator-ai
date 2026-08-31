@@ -37,3 +37,9 @@ class PasswordManager:
         if not re.search(r"[0-9]", password):
             return False, "Password must contain at least one digit."
         return True, "Password meets strength criteria."
+
+
+# Module-level convenience functions
+hash_password = PasswordManager.hash_password
+verify_password = PasswordManager.verify_password
+validate_password_strength = PasswordManager.validate_password_strength

@@ -3,6 +3,7 @@ from typing import List, Optional
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import BaseModel
+from app.security.password import hash_password, verify_password
 
 
 class User(BaseModel):
@@ -23,6 +24,12 @@ class User(BaseModel):
     copilot_conversations: Mapped[List["CopilotConversation"]] = relationship(
         "CopilotConversation", back_populates="user", cascade="all, delete-orphan"
     )
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = hash_password(password)
+
+    def check_password(self, password: str) -> bool:
+        return verify_password(password, self.password_hash)
 
     def to_dict(self, include_sensitive: bool = False):
         data = super().to_dict()

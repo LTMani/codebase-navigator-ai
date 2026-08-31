@@ -16,7 +16,7 @@ class Project(BaseModel):
     version: Mapped[str] = mapped_column(String(32), default="1.0.0", nullable=False)
     
     # Ownership
-    owner_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    owner_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True, default="default_owner")
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
@@ -41,12 +41,11 @@ class Project(BaseModel):
     languages_json: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     frameworks_json: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     entry_points_json: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
-    tags_json: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
 
     # Relationships
     owner: Mapped["User"] = relationship("User", back_populates="projects")
-    source_files: Mapped[List["SourceFile"]] = relationship("SourceFile", back_populates="project", cascade="all, delete-orphan")
     source_folders: Mapped[List["SourceFolder"]] = relationship("SourceFolder", back_populates="project", cascade="all, delete-orphan")
+    source_files: Mapped[List["SourceFile"]] = relationship("SourceFile", back_populates="project", cascade="all, delete-orphan")
     analysis_runs: Mapped[List["AnalysisRun"]] = relationship("AnalysisRun", back_populates="project", cascade="all, delete-orphan")
     dependencies: Mapped[List["DependencyEdge"]] = relationship("DependencyEdge", back_populates="project", cascade="all, delete-orphan")
     architecture_findings: Mapped[List["ArchitectureFinding"]] = relationship("ArchitectureFinding", back_populates="project", cascade="all, delete-orphan")
@@ -54,6 +53,21 @@ class Project(BaseModel):
     health_metrics: Mapped[List["HealthMetric"]] = relationship("HealthMetric", back_populates="project", cascade="all, delete-orphan")
     onboarding_plans: Mapped[List["OnboardingPlan"]] = relationship("OnboardingPlan", back_populates="project", cascade="all, delete-orphan")
     copilot_conversations: Mapped[List["CopilotConversation"]] = relationship("CopilotConversation", back_populates="project", cascade="all, delete-orphan")
+
+    def __init__(self, **kwargs):
+        if "user_id" in kwargs and "owner_id" not in kwargs:
+            kwargs["owner_id"] = kwargs.pop("user_id")
+        if "owner_id" not in kwargs:
+            kwargs["owner_id"] = "default_owner"
+        super().__init__(**kwargs)
+
+    @property
+    def folders(self):
+        return self.source_folders
+
+    @property
+    def files(self):
+        return self.source_files
 
     @property
     def languages(self) -> Dict[str, Any]:

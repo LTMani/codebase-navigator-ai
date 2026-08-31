@@ -1,8 +1,10 @@
 import hashlib
 import os
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from app.models.project import Project
+from app.models.base import db
+from app.models.project import AnalysisRun, Project
 from app.models.source_file import SourceFile, SourceFolder
 from app.models.symbol import ClassDefinition, FunctionDefinition, ImportStatement, Symbol
 from app.parsers.config_parser import ConfigParser
@@ -97,7 +99,6 @@ class ScannerService:
 
         # 1. First pass: Collect folders and files
         for root_str, dirs, files in os.walk(project_dir):
-            # In-place directory filtering
             dirs[:] = [d for d in dirs if d not in self.IGNORED_DIRS and not d.startswith(".")]
 
             current_root = Path(root_str)
@@ -105,11 +106,9 @@ class ScannerService:
             if rel_folder == ".":
                 rel_folder = ""
 
-            # Register folder if non-root
             if rel_folder and rel_folder not in folders_map:
                 depth = len(rel_folder.split("/"))
                 name = current_root.name
-                parent_rel = Path(rel_folder).parent.as_posix() if "/" in rel_folder else None
                 
                 folder_obj = SourceFolder(
                     project_id=project.id,
@@ -132,7 +131,6 @@ class ScannerService:
                 except Exception:
                     file_size = 0
 
-                # Skip files > 5MB to preserve performance
                 if file_size > 5 * 1024 * 1024:
                     continue
 
@@ -142,14 +140,12 @@ class ScannerService:
                 except Exception:
                     content = ""
 
-                # Check if Manifest file
                 if file_name.lower() in ("package.json", "requirements.txt", "pyproject.toml", "setup.py", "pipfile", "cargo.toml", "go.mod", "pom.xml", "composer.json"):
                     man_res = ManifestParser.parse_manifest(file_name, content)
                     manifest_results.append(man_res)
                     for fw in man_res.frameworks_detected:
                         frameworks_detected.add(fw)
 
-                # Parse file AST using ParserFactory
                 parse_res = ParserFactory.parse_file(content, rel_path)
                 file_hash = self.calculate_file_hash(content)
 
@@ -194,7 +190,6 @@ class ScannerService:
                     maintainability_index=m.maintainability_index,
                     documentation_ratio=m.documentation_ratio,
                     layer_classification=parse_res.layer_hint or "unclassified",
-                    layer_confidence=0.85 if parse_res.layer_hint else 0.0,
                     is_entry_point=parse_res.is_entry_point,
                     is_test_file=parse_res.is_test_file,
                     is_config_file=parse_res.is_config_file,
@@ -203,23 +198,20 @@ class ScannerService:
                 )
                 source_files.append(source_file_obj)
 
-                # Link Symbols to SourceFile
-                for s in parse_res.symbols:
+                # Link Symbols
+                for sym in parse_res.symbols:
                     all_symbols.append(
                         Symbol(
                             project_id=project.id,
                             source_file=source_file_obj,
-                            name=s.name,
-                            kind=s.kind,
-                            qualified_name=s.qualified_name,
-                            visibility=s.visibility,
-                            start_line=s.start_line,
-                            end_line=s.end_line,
-                            start_col=s.start_col,
-                            end_col=s.end_col,
-                            signature=s.signature,
-                            docstring=s.docstring,
-                            is_exported=s.is_exported,
+                            name=sym.name,
+                            kind=sym.kind,
+                            qualified_name=sym.qualified_name,
+                            visibility=sym.visibility,
+                            start_line=sym.start_line,
+                            end_line=sym.end_line,
+                            is_exported=sym.is_exported,
+                            docstring=sym.docstring,
                         )
                     )
 
@@ -234,9 +226,9 @@ class ScannerService:
                             start_line=fn.start_line,
                             end_line=fn.end_line,
                             line_count=fn.line_count,
-                            parameters_json=str([p.__dict__ for p in fn.parameters]).replace("'", '"'),
+                            parameters=[p.name if hasattr(p, "name") else str(p) for p in fn.parameters],
                             return_type=fn.return_type,
-                            decorators_json=str(fn.decorators).replace("'", '"'),
+                            decorators=fn.decorators,
                             is_async=fn.is_async,
                             is_static=fn.is_static,
                             is_method=fn.is_method,
@@ -246,7 +238,7 @@ class ScannerService:
                             parameter_count=fn.parameter_count,
                             return_count=fn.return_count,
                             docstring=fn.docstring,
-                            calls_json=str(fn.calls).replace("'", '"'),
+                            calls=fn.calls,
                         )
                     )
 
@@ -261,10 +253,10 @@ class ScannerService:
                             start_line=cls.start_line,
                             end_line=cls.end_line,
                             line_count=cls.line_count,
-                            base_classes_json=str(cls.base_classes).replace("'", '"'),
-                            interfaces_json=str(cls.interfaces).replace("'", '"'),
-                            decorators_json=str(cls.decorators).replace("'", '"'),
-                            methods_count=len(cls.methods),
+                            base_classes=cls.base_classes,
+                            interfaces=cls.interfaces,
+                            decorators=cls.decorators,
+                            methods_count=len(cls.methods) or cls.methods_count,
                             docstring=cls.docstring,
                         )
                     )
@@ -276,7 +268,7 @@ class ScannerService:
                             project_id=project.id,
                             source_file=source_file_obj,
                             module_name=imp.module_name,
-                            imported_names_json=str(imp.imported_names).replace("'", '"'),
+                            imported_symbols=imp.imported_symbols,
                             alias=imp.alias,
                             line_number=imp.line_number,
                             is_relative=imp.is_relative,
@@ -306,3 +298,37 @@ class ScannerService:
             "frameworks": sorted(list(frameworks_detected)),
             "entry_points": entry_points,
         }
+
+    def scan_project_directory(self, project: Project, directory_path: str) -> Tuple[AnalysisRun, List[SourceFile]]:
+        """Scans local directory, persists database entities, and records an AnalysisRun."""
+        start_time = time.time()
+        res = self.scan_and_parse_project(project, Path(directory_path))
+
+        db.session.add(project)
+        for folder in res["folders"]:
+            db.session.add(folder)
+        for sf in res["source_files"]:
+            db.session.add(sf)
+        for sym in res["symbols"]:
+            db.session.add(sym)
+        for fn in res["functions"]:
+            db.session.add(fn)
+        for cls in res["classes"]:
+            db.session.add(cls)
+        for imp in res["imports"]:
+            db.session.add(imp)
+
+        duration_ms = int((time.time() - start_time) * 1000)
+        run = AnalysisRun(
+            project_id=project.id,
+            trigger="cli/scan",
+            status="completed",
+            duration_ms=duration_ms,
+            files_analyzed=len(res["source_files"]),
+            symbols_extracted=len(res["symbols"]),
+            dependencies_found=len(res["imports"]),
+        )
+        db.session.add(run)
+        db.session.commit()
+
+        return run, res["source_files"]

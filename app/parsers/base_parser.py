@@ -22,16 +22,17 @@ class ExtractedCall:
 @dataclass
 class ExtractedFunction:
     name: str
-    qualified_name: str
-    start_line: int
-    end_line: int
-    line_count: int
-    parameters: List[ExtractedParameter] = field(default_factory=list)
+    qualified_name: str = ""
+    start_line: int = 1
+    end_line: int = 1
+    line_count: int = 1
+    parameters: List[Any] = field(default_factory=list)
     return_type: Optional[str] = None
     decorators: List[str] = field(default_factory=list)
     is_async: bool = False
     is_static: bool = False
     is_method: bool = False
+    is_exported: bool = False
     visibility: str = "public"
     cyclomatic_complexity: int = 1
     cognitive_complexity: int = 0
@@ -41,46 +42,70 @@ class ExtractedFunction:
     calls: List[str] = field(default_factory=list)
     detailed_calls: List[ExtractedCall] = field(default_factory=list)
 
+    def __post_init__(self):
+        if not self.qualified_name:
+            self.qualified_name = self.name
+        if self.end_line >= self.start_line and self.line_count == 1:
+            self.line_count = max(1, self.end_line - self.start_line + 1)
+
 
 @dataclass
 class ExtractedClass:
     name: str
-    qualified_name: str
-    start_line: int
-    end_line: int
-    line_count: int
+    qualified_name: str = ""
+    start_line: int = 1
+    end_line: int = 1
+    line_count: int = 1
     base_classes: List[str] = field(default_factory=list)
     interfaces: List[str] = field(default_factory=list)
     decorators: List[str] = field(default_factory=list)
     methods: List[ExtractedFunction] = field(default_factory=list)
     fields: List[str] = field(default_factory=list)
     docstring: Optional[str] = None
+    is_exported: bool = False
+    methods_count: int = 0
+
+    def __post_init__(self):
+        if not self.qualified_name:
+            self.qualified_name = self.name
+        if self.methods and self.methods_count == 0:
+            self.methods_count = len(self.methods)
 
 
 @dataclass
 class ExtractedImport:
     module_name: str
+    imported_symbols: List[str] = field(default_factory=list)
     imported_names: List[str] = field(default_factory=list)
     alias: Optional[str] = None
-    line_number: int = 1
     is_relative: bool = False
     is_external: bool = False
-    resolved_path: Optional[str] = None
+    is_type_only: bool = False
+    line_number: int = 1
+
+    def __post_init__(self):
+        if self.imported_names and not self.imported_symbols:
+            self.imported_symbols = self.imported_names.copy()
+        elif self.imported_symbols and not self.imported_names:
+            self.imported_names = self.imported_symbols.copy()
 
 
 @dataclass
 class ExtractedSymbol:
     name: str
-    kind: str  # function, class, method, variable, constant, interface, type
-    qualified_name: str
-    start_line: int
-    end_line: int
-    start_col: int = 0
-    end_col: int = 0
-    visibility: str = "public"
-    signature: Optional[str] = None
-    docstring: Optional[str] = None
+    kind: str  # 'function', 'class', 'interface', 'variable', 'constant', 'enum', 'type_alias'
+    qualified_name: str = ""
+    start_line: int = 1
+    end_line: int = 1
     is_exported: bool = False
+    visibility: str = "public"
+    docstring: Optional[str] = None
+    signature: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.qualified_name:
+            self.qualified_name = self.name
 
 
 @dataclass
@@ -96,35 +121,48 @@ class ComplexityMetrics:
     halstead_effort: float = 0.0
     maintainability_index: float = 100.0
     documentation_ratio: float = 0.0
+    lines_of_code: int = 0
 
 
 @dataclass
 class ParseResult:
     language: str
-    file_path: str
+    file_path: str = ""
+    total_lines: int = 0
+    code_lines: int = 0
+    comment_lines: int = 0
+    blank_lines: int = 0
     symbols: List[ExtractedSymbol] = field(default_factory=list)
     functions: List[ExtractedFunction] = field(default_factory=list)
     classes: List[ExtractedClass] = field(default_factory=list)
     imports: List[ExtractedImport] = field(default_factory=list)
     metrics: ComplexityMetrics = field(default_factory=ComplexityMetrics)
+    complexity: Optional[ComplexityMetrics] = None
     purpose_summary: Optional[str] = None
     is_entry_point: bool = False
     is_test_file: bool = False
     is_config_file: bool = False
-    layer_hint: Optional[str] = None  # presentation, api, service, domain, repository, infrastructure, utility
+    layer_hint: Optional[str] = None
     errors: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.complexity and not self.metrics.total_lines:
+            self.metrics = self.complexity
 
 
 class BaseParser(ABC):
     """Abstract Base Class for language AST parsers with standardized metric formulas."""
 
+    def __init__(self, language: str = "Generic"):
+        self.language = language
+
     @abstractmethod
-    def parse(self, content: str, file_path: str) -> ParseResult:
+    def parse(self, content: str, file_path: str = "") -> ParseResult:
         """Parse source code string and return structured AST analysis results."""
         pass
 
     @classmethod
-    def calculate_line_counts(cls, content: str, comment_prefixes: tuple[str, ...] = ("#", "//", "/*", "*")) -> tuple[int, int, int, int]:
+    def calculate_line_counts(cls, content: str, comment_prefixes: tuple[str, ...] = ("#", "//", "/*", "*", "--")) -> tuple[int, int, int, int]:
         """Calculate (total, code, comment, blank) lines."""
         lines = content.splitlines()
         total = len(lines)
@@ -156,3 +194,29 @@ class BaseParser(ABC):
         raw_mi = 171.0 - (5.2 * math.log(vol)) - (0.23 * cc) - (16.2 * math.log(loc))
         normalized_mi = max(0.0, min(100.0, (raw_mi * 100.0) / 171.0))
         return round(normalized_mi, 2)
+
+    _calculate_maintainability_index = calculate_maintainability_index
+    _calculate_line_counts = calculate_line_counts
+
+    def _estimate_cyclomatic_complexity(self, code_content: str) -> int:
+        """Heuristic cyclomatic complexity estimation based on branching keywords."""
+        keywords = ["if ", "elif ", "else if ", "for ", "while ", "case ", "catch ", "&&", "||", " and ", " or ", " ? "]
+        cc = 1
+        for kw in keywords:
+            cc += code_content.count(kw)
+        return min(cc, 100)
+
+    def _calculate_halstead_metrics(self, code_content: str) -> Dict[str, float]:
+        """Estimate Halstead software science metrics (volume, difficulty, effort)."""
+        tokens = code_content.split()
+        n2 = len(tokens)
+        n1 = len(set(tokens))
+
+        vol = max(10.0, n2 * (math.log2(max(n1, 2))))
+        diff = max(1.0, (n1 / 2.0))
+        effort = vol * diff
+        return {
+            "volume": round(vol, 2),
+            "difficulty": round(diff, 2),
+            "effort": round(effort, 2),
+        }

@@ -38,6 +38,11 @@ class BaseModel(db.Model):
         nullable=False
     )
 
+    def __init__(self, **kwargs):
+        if "id" not in kwargs or not kwargs["id"]:
+            kwargs["id"] = generate_uuid()
+        super().__init__(**kwargs)
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize model attributes to dictionary."""
         result = {}

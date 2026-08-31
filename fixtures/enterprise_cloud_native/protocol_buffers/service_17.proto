@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package com.navigator.grpc.service17;
+
+option go_package = "github.com/navigator/grpc/service17";
+option java_package = "com.navigator.grpc.service17";
+
+message ServiceRequest17 {
+  string request_id = 1;
+  string tenant_id = 2;
+  int64 timestamp = 3;
+  map<string, string> metadata = 4;
+}
+
+message ServiceResponse17 {
+  string request_id = 1;
+  bool is_success = 2;
+  int32 error_code = 3;
+  string message = 4;
+  double execution_latency_ms = 5;
+}
+
+service EnterpriseRpcService17 {
+  rpc ProcessRequest(ServiceRequest17) returns (ServiceResponse17);
+  rpc StreamRequests(stream ServiceRequest17) returns (stream ServiceResponse17);
+}

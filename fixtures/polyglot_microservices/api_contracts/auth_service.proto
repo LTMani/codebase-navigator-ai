@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package navigator.auth.v1;
+
+option go_package = "github.com/navigator/auth-service/proto/v1;authv1";
+option java_multiple_files = true;
+option java_package = "com.navigator.auth.v1";
+
+service AuthService {
+  rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
+  rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse);
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc RevokeSession (RevokeSessionRequest) returns (RevokeSessionResponse);
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_ADMIN = 1;
+  USER_ROLE_DEVELOPER = 2;
+  USER_ROLE_VIEWER = 3;
+  USER_ROLE_AUDITOR = 4;
+}
+
+message RegisterUserRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+}
+
+message RegisterUserResponse {
+  string user_id = 1;
+  string email = 2;
+  UserRole role = 3;
+}
+
+message AuthenticateRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthenticateResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in_seconds = 3;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  string user_id = 2;
+  string email = 3;
+  UserRole role = 4;
+}
+
+message RevokeSessionRequest {
+  string session_id = 1;
+}
+
+message RevokeSessionResponse {
+  bool success = 1;
+}

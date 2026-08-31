@@ -1,167 +1,89 @@
 import os
-from pathlib import Path
-from flask import Flask, render_template, send_from_directory
-from app.config.settings import get_config
-from app.config.logging_config import configure_logging
+from flask import Flask, render_template
 from app.extensions import db, cors
-from app.errors.handlers import register_error_handlers
-from app.middleware.request_logger import init_request_logger
-from app.middleware.rate_limiter import check_rate_limit
+from app.config import get_config
 
+from app.routes.project_routes import project_bp
+from app.routes.search_routes import search_bp
+from app.routes.architecture_routes import architecture_bp
+from app.routes.dependency_routes import dependency_bp
+from app.routes.flow_routes import flow_bp
+from app.routes.impact_routes import impact_bp
+from app.routes.circular_routes import circular_bp
+from app.routes.copilot_routes import copilot_bp
+from app.routes.file_intelligence_routes import file_intelligence_bp
+from app.routes.tree_routes import tree_bp
+from app.routes.auth_routes import auth_bp
+from app.routes.health_routes import health_bp
+from app.routes.history_routes import history_bp
+from app.routes.knowledge_map_routes import knowledge_map_bp
+from app.routes.onboarding_routes import onboarding_bp
+from app.routes.report_routes import report_bp
+from app.routes.settings_routes import settings_bp
+from app.routes.analytics_routes import analytics_bp
+from app.routes.security_routes import security_bp
+from app.routes.compliance_routes import compliance_bp
+from app.routes.git_routes import git_bp
+from app.routes.refactor_routes import refactor_bp
+from app.routes.cfg_routes import cfg_bp
+from app.routes.metrics_routes import metrics_bp
+from app.routes.export_routes import export_bp
 
-def create_app(env_name: str | None = None) -> Flask:
-    """Application factory for CodeBase Navigator AI."""
-    cfg = get_config(env_name)
-
-    base_dir = Path(__file__).resolve().parent.parent
-    frontend_dir = base_dir / "frontend"
-    templates_dir = frontend_dir / "templates"
-    static_dir = frontend_dir / "static"
-
-    application = Flask(
+def create_app(config_object="development"):
+    app = Flask(
         __name__,
-        template_folder=str(templates_dir),
-        static_folder=str(static_dir),
-        static_url_path="/static",
+        template_folder="../frontend/templates",
+        static_folder="../frontend/static"
     )
-    application.config.from_object(cfg)
+    
+    if isinstance(config_object, str):
+        if config_object in ("testing", "development", "production", "default"):
+            cfg = get_config(config_object)
+            app.config.from_object(cfg)
+        else:
+            try:
+                app.config.from_object(config_object)
+            except Exception:
+                cfg = get_config("development")
+                app.config.from_object(cfg)
+    else:
+        app.config.from_object(config_object)
 
-    # Configure Logging
-    configure_logging(
-        app_name="codebase_navigator",
-        log_level=cfg.LOG_LEVEL,
-        log_file=cfg.LOG_FILE if not cfg.TESTING else None,
-    )
+    db.init_app(app)
+    cors.init_app(app)
+    from app.errors.handlers import register_error_handlers
+    register_error_handlers(app)
 
-    # Initialize Extensions
-    db.init_app(application)
-    cors.init_app(application, resources={r"/api/*": {"origins": "*"}})
+    # Register all blueprints
+    app.register_blueprint(project_bp)
+    app.register_blueprint(search_bp)
+    app.register_blueprint(architecture_bp)
+    app.register_blueprint(dependency_bp)
+    app.register_blueprint(flow_bp)
+    app.register_blueprint(impact_bp)
+    app.register_blueprint(circular_bp)
+    app.register_blueprint(copilot_bp)
+    app.register_blueprint(file_intelligence_bp)
+    app.register_blueprint(tree_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(health_bp)
+    app.register_blueprint(history_bp)
+    app.register_blueprint(knowledge_map_bp)
+    app.register_blueprint(onboarding_bp)
+    app.register_blueprint(report_bp)
+    app.register_blueprint(settings_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(security_bp)
+    app.register_blueprint(compliance_bp)
+    app.register_blueprint(git_bp)
+    app.register_blueprint(refactor_bp)
+    app.register_blueprint(cfg_bp)
+    app.register_blueprint(metrics_bp)
+    app.register_blueprint(export_bp)
 
-    # Middleware & Error Handlers
-    register_error_handlers(application)
-    init_request_logger(application)
+    @app.route("/")
+    @app.register_blueprint if False else app.route("/project/<path:subpath>")
+    def index(subpath=""):
+        return render_template("index.html")
 
-    @application.before_request
-    def apply_rate_limiting():
-        if not application.config.get("TESTING", False):
-            check_rate_limit()
-
-    # Register Blueprints
-    from app.routes.auth_routes import auth_bp
-    from app.routes.settings_routes import settings_bp
-    application.register_blueprint(auth_bp)
-    application.register_blueprint(settings_bp)
-
-    # Register lazy blueprints if already implemented
-    try:
-        from app.routes.project_routes import project_bp
-        application.register_blueprint(project_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.tree_routes import tree_bp
-        application.register_blueprint(tree_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.file_intelligence_routes import file_intelligence_bp
-        application.register_blueprint(file_intelligence_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.dependency_routes import dependency_bp
-        application.register_blueprint(dependency_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.architecture_routes import architecture_bp
-        application.register_blueprint(architecture_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.flow_routes import flow_bp
-        application.register_blueprint(flow_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.impact_routes import impact_bp
-        application.register_blueprint(impact_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.search_routes import search_bp
-        application.register_blueprint(search_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.health_routes import health_bp
-        application.register_blueprint(health_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.circular_routes import circular_bp
-        application.register_blueprint(circular_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.onboarding_routes import onboarding_bp
-        application.register_blueprint(onboarding_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.knowledge_map_routes import knowledge_map_bp
-        application.register_blueprint(knowledge_map_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.copilot_routes import copilot_bp
-        application.register_blueprint(copilot_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.history_routes import history_bp
-        application.register_blueprint(history_bp)
-    except ImportError:
-        pass
-
-    try:
-        from app.routes.report_routes import report_bp
-        application.register_blueprint(report_bp)
-    except ImportError:
-        pass
-
-    # Root and SPA fallback route
-    @application.route("/", defaults={"path": ""})
-    @application.route("/<path:path>")
-    def serve_spa(path: str):
-        if path.startswith("api/"):
-            return {"success": False, "error": {"code": "ENDPOINT_NOT_FOUND", "message": "API endpoint not found"}}, 404
-        index_file = templates_dir / "index.html"
-        if index_file.exists():
-            return render_template("index.html")
-        return {
-            "name": cfg.APP_NAME,
-            "version": cfg.APP_VERSION,
-            "status": "running",
-            "message": "CodeBase Navigator AI API server active.",
-        }
-
-    # Initialize Database Tables
-    with application.app_context():
-        from app import models as app_models
-        db.create_all()
-
-    return application
+    return app

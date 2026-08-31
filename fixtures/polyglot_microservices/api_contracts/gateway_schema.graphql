@@ -1,0 +1,70 @@
+type Query {
+  project(id: ID!): Project
+  projects(limit: Int = 20, offset: Int = 0): [Project!]!
+  fileIntelligence(projectId: ID!, path: String!): FileAnalysis
+  architectureGraph(projectId: ID!): ArchitectureGraph!
+}
+
+type Mutation {
+  createProject(name: String!, rootPath: String!): Project!
+  scanProject(projectId: ID!): ScanJobStatus!
+  triggerRefactoring(projectId: ID!, file: String!, rule: String!): RefactorProposal!
+}
+
+type Project {
+  id: ID!
+  name: String!
+  rootPath: String!
+  totalFiles: Int!
+  linesOfCode: Int!
+  primaryLanguage: String!
+  createdAt: String!
+}
+
+type FileAnalysis {
+  filePath: String!
+  language: String!
+  linesOfCode: Int!
+  complexity: Int!
+  maintainabilityIndex: Float!
+  dependencies: [String!]!
+  securityIssues: [SecurityIssue!]!
+}
+
+type SecurityIssue {
+  ruleId: String!
+  severity: String!
+  line: Int!
+  message: String!
+}
+
+type ArchitectureGraph {
+  nodes: [GraphNode!]!
+  edges: [GraphEdge!]!
+}
+
+type GraphNode {
+  id: String!
+  label: String!
+  nodeType: String!
+  size: Int!
+}
+
+type GraphEdge {
+  source: String!
+  target: String!
+  relationship: String!
+  weight: Float!
+}
+
+type ScanJobStatus {
+  jobId: ID!
+  status: String!
+  progressPercentage: Float!
+}
+
+type RefactorProposal {
+  proposalId: ID!
+  suggestedPatch: String!
+  riskScore: Float!
+}

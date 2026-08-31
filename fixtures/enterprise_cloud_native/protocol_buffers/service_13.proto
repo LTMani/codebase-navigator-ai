@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package com.navigator.grpc.service13;
+
+option go_package = "github.com/navigator/grpc/service13";
+option java_package = "com.navigator.grpc.service13";
+
+message ServiceRequest13 {
+  string request_id = 1;
+  string tenant_id = 2;
+  int64 timestamp = 3;
+  map<string, string> metadata = 4;
+}
+
+message ServiceResponse13 {
+  string request_id = 1;
+  bool is_success = 2;
+  int32 error_code = 3;
+  string message = 4;
+  double execution_latency_ms = 5;
+}
+
+service EnterpriseRpcService13 {
+  rpc ProcessRequest(ServiceRequest13) returns (ServiceResponse13);
+  rpc StreamRequests(stream ServiceRequest13) returns (stream ServiceResponse13);
+}

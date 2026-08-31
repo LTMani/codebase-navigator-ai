@@ -1,0 +1,31 @@
+# GraphQL Subgraph Schema Specification for Domain 27
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable", "@provides", "@requires"])
+
+type DomainEntity27 @key(fields: "id") {
+  id: ID!
+  name: String!
+  slug: String!
+  status: String!
+  metricValue: Float!
+  tags: [String!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateDomainEntity27Input {
+  name: String!
+  slug: String!
+  metricValue: Float!
+  tags: [String!] = []
+}
+
+extend type Query {
+  getDomainEntity27(id: ID!): DomainEntity27
+  listDomainEntities27(limit: Int = 20, offset: Int = 0): [DomainEntity27!]!
+}
+
+extend type Mutation {
+  createDomainEntity27(input: CreateDomainEntity27Input!): DomainEntity27!
+  deleteDomainEntity27(id: ID!): Boolean!
+}

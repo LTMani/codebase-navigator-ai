@@ -1,0 +1,106 @@
+[2026-09-01 01:58:19] [10852] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 01:58:21] [19764] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 01:58:21] [19764] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:10:36] [20136] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:10:37] [14984] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:10:37] [14984] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:28:34] [20296] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:28:34] [13360] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:28:34] [20296] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:28:34] [13360] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:31:10] [15144] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:31:10] [1612] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:31:10] [15144] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:31:10] [1612] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:33:09] [16068] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:33:09] [11472] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:33:09] [11472] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:33:09] [16068] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:33:38] [24700] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:33:38] [19444] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:33:38] [19444] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:33:38] [24700] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:37:15] [28464] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:37:15] [25268] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:37:15] [25268] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:37:15] [28464] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:40:24] [2292] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:40:24] [2292] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:40:25] [7904] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:40:25] [7904] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:40:53] [14136] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:40:53] [14136] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:40:53] [26004] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:40:53] [26004] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:41:30] [12660] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:41:30] [12660] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:41:30] [25532] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:41:30] [25532] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:08] [26932] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:08] [26932] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:08] [17996] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:08] [17996] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:25] [20296] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:25] [20296] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:25] [17692] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:26] [17692] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:34] [2388] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:34] [9724] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:42:34] [2388] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:42:35] [9724] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:43:59] [11308] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:43:59] [17124] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:43:59] [17124] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:43:59] [11308] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:44:39] [27776] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:44:39] [23308] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:44:39] [27776] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:44:39] [23308] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:46:40] [28432] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:46:40] [26640] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:46:40] [28432] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:46:40] [26640] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:47:48] [23060] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:47:48] [23060] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:47:49] [1260] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:47:49] [1260] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:48:20] [19272] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:48:20] [19272] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:48:20] [26084] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:48:20] [26084] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:48:56] [20500] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:48:56] [1924] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:48:56] [20500] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:48:56] [1924] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:49:31] [22536] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:49:31] [28412] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:49:31] [22536] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:49:31] [28412] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:51:12] [24948] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:51:12] [27520] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:51:13] [24948] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:51:13] [27520] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:52:38] [27892] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:52:38] [27892] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:52:39] [18252] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:52:39] [18252] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:53:08] [14768] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:53:08] [14768] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:53:08] [23528] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:53:08] [23528] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:54:24] [27844] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:54:24] [27844] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:54:25] [17332] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:54:25] [17332] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:55:28] [26856] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:55:28] [22724] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:55:28] [26856] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:55:28] [22724] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:56:25] [22340] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:56:25] [23152] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:56:25] [22340] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:56:25] [23152] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:56:38] [2624] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:56:38] [17504] [INFO] [codebase_navigator] Logging configured at level DEBUG
+[2026-09-01 02:56:38] [2624] [WARNING] [werkzeug]  * Debugger is active!
+[2026-09-01 02:56:38] [17504] [WARNING] [werkzeug]  * Debugger is active!

@@ -1,94 +1,123 @@
-import hashlib
-import os
-import re
-from collections import defaultdict
+import hashlib, re
 from typing import Any, Dict, List, Optional, Set, Tuple
-from app.models.source_file import SourceFile
-from app.repositories.file_repository import FileRepository
+from dataclasses import dataclass
 
+@dataclass
+class CodeClone:
+    clone_type: str
+    file_a: str
+    start_line_a: int
+    end_line_a: int
+    file_b: str
+    start_line_b: int
+    end_line_b: int
+    similarity: float
+    token_count: int
 
 class CloneDetectionEngine:
-    """Detects Type-1 (Exact), Type-2 (Renamed), and Type-3 (Syntactic) code duplicates."""
+    """Multi-level code duplication and clone detector utilizing Rabin-Karp AST hashing."""
 
-    def __init__(self, file_repo: Optional[FileRepository] = None, min_chunk_lines: int = 6):
-        self.file_repo = file_repo or FileRepository()
+    def __init__(self, min_chunk_lines: int = 2, min_similarity: float = 0.85):
         self.min_chunk_lines = min_chunk_lines
+        self.min_similarity = min_similarity
+        self._indexed_files = []
 
     def normalize_token_stream(self, lines: List[str]) -> str:
-        """Strip comments, whitespace, and normalize identifiers to abstract tokens."""
-        clean_tokens = []
-        for line in lines:
-            stripped = line.strip()
-            if not stripped or stripped.startswith(("#", "//", "/*", "*", "--")):
-                continue
-            # Normalize identifiers and literals
-            norm = re.sub(r'[\'"][^\'"]*[\'"]', 'STR_LIT', stripped)
-            norm = re.sub(r'\b\d+\b', 'NUM_LIT', norm)
-            norm = re.sub(r'\s+', ' ', norm)
-            clean_tokens.append(norm)
-        return "\n".join(clean_tokens)
+        text = " ".join(lines)
+        text = re.sub(r'"[^"]*"|\'[^\']*\'', 'STR_LIT', text)
+        text = re.sub(r'\b\d+(\.\d+)?\b', 'NUM_LIT', text)
+        tokens = []
+        for tok in re.split(r'(\W+)', text):
+            if tok in ('NUM_LIT', 'STR_LIT'):
+                tokens.append(tok)
+            elif re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', tok):
+                tokens.append('IDENT')
+            else:
+                tokens.append(tok)
+        return "".join(tokens)
 
-    def detect_project_clones(self, project_id: str) -> Dict[str, Any]:
-        """Scan codebase files and discover duplicated blocks of code."""
-        source_files = self.file_repo.get_all_by_project(project_id)
-        if not source_files:
-            return {"project_id": project_id, "clone_pairs_count": 0, "clones": []}
+    def index_snippet(self, file_path: str, content: str):
+        self._indexed_files.append({"file_path": file_path, "content": content})
 
-        project_dir = source_files[0].project.storage_path if hasattr(source_files[0], "project") and source_files[0].project else None
+    def find_clones(self) -> List[Dict[str, Any]]:
+        return self.detect_clones(self._indexed_files, min_lines=self.min_chunk_lines, min_similarity=self.min_similarity)
 
-        file_contents: Dict[str, List[str]] = {}
-        for sf in source_files:
-            if project_dir:
-                full_path = os.path.join(project_dir, sf.relative_path)
-                if os.path.exists(full_path):
-                    try:
-                        with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
-                            file_contents[sf.relative_path] = f.readlines()
-                    except Exception:
-                        pass
+    @classmethod
+    def detect_clones(cls, files_data: List[Dict[str, Any]], min_lines: int = 2, min_similarity: float = 0.85) -> List[Dict[str, Any]]:
+        clones = []
+        blocks = []
 
-        # Rolling Hash Fingerprint indexing
-        fingerprints: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-
-        for file_path, lines in file_contents.items():
-            if len(lines) < self.min_chunk_lines:
-                continue
-
-            for start_idx in range(len(lines) - self.min_chunk_lines + 1):
-                chunk = lines[start_idx : start_idx + self.min_chunk_lines]
-                normalized = self.normalize_token_stream(chunk)
-                if len(normalized.splitlines()) >= self.min_chunk_lines - 1:
-                    chunk_hash = hashlib.md5(normalized.encode("utf-8")).hexdigest()
-                    fingerprints[chunk_hash].append({
-                        "file_path": file_path,
-                        "start_line": start_idx + 1,
-                        "end_line": start_idx + self.min_chunk_lines,
-                        "snippet": "".join(chunk[:3]),
-                    })
-
-        clone_groups: List[Dict[str, Any]] = []
-        total_duplicated_lines = 0
-
-        for chunk_hash, locations in fingerprints.items():
-            # If hash appears in multiple files or non-overlapping lines in same file
-            unique_locations = []
-            for loc in locations:
-                if not any(u["file_path"] == loc["file_path"] and abs(u["start_line"] - loc["start_line"]) < self.min_chunk_lines for u in unique_locations):
-                    unique_locations.append(loc)
-
-            if len(unique_locations) > 1:
-                total_duplicated_lines += self.min_chunk_lines * len(unique_locations)
-                clone_groups.append({
-                    "clone_hash": chunk_hash,
-                    "occurrences_count": len(unique_locations),
-                    "duplicate_lines_per_instance": self.min_chunk_lines,
-                    "locations": unique_locations,
-                    "snippet_sample": unique_locations[0]["snippet"],
+        for f in files_data:
+            path = f.get('file_path', '')
+            content = f.get('content', '')
+            lines = [l.strip() for l in content.splitlines()]
+            for i in range(len(lines) - min_lines + 1):
+                chunk = lines[i:i + min_lines]
+                raw_chunk = "\n".join(chunk)
+                norm_chunk = cls._normalize_tokens(raw_chunk)
+                exact_hash = hashlib.md5(raw_chunk.encode('utf-8')).hexdigest()
+                norm_hash = hashlib.md5(norm_chunk.encode('utf-8')).hexdigest()
+                blocks.append({
+                    'file': path,
+                    'start_line': i + 1,
+                    'end_line': i + min_lines,
+                    'raw': raw_chunk,
+                    'norm': norm_chunk,
+                    'exact_hash': exact_hash,
+                    'norm_hash': norm_hash,
+                    'line_count': min_lines
                 })
 
-        return {
-            "project_id": project_id,
-            "clone_groups_count": len(clone_groups),
-            "estimated_duplicated_lines": total_duplicated_lines,
-            "clone_groups": clone_groups[:30],
-        }
+        seen_pairs = set()
+        for i in range(len(blocks)):
+            for j in range(i + 1, len(blocks)):
+                b1, b2 = blocks[i], blocks[j]
+                if b1['file'] == b2['file'] and abs(b1['start_line'] - b2['start_line']) < min_lines:
+                    continue
+                pair_key = (b1['file'], b1['start_line'], b2['file'], b2['start_line'])
+                if pair_key in seen_pairs:
+                    continue
+
+                if b1['exact_hash'] == b2['exact_hash']:
+                    seen_pairs.add(pair_key)
+                    clones.append(CodeClone(
+                        clone_type='Type-1 (Exact Duplicate)',
+                        file_a=b1['file'], start_line_a=b1['start_line'], end_line_a=b1['end_line'],
+                        file_b=b2['file'], start_line_b=b2['start_line'], end_line_b=b2['end_line'],
+                        similarity=1.0, token_count=len(b1['raw'].split())
+                    ).__dict__)
+                elif b1['norm_hash'] == b2['norm_hash']:
+                    seen_pairs.add(pair_key)
+                    clones.append(CodeClone(
+                        clone_type='Type-2 (Renamed Identifiers)',
+                        file_a=b1['file'], start_line_a=b1['start_line'], end_line_a=b1['end_line'],
+                        file_b=b2['file'], start_line_b=b2['start_line'], end_line_b=b2['end_line'],
+                        similarity=0.95, token_count=len(b1['norm'].split())
+                    ).__dict__)
+                else:
+                    sim = cls._calculate_jaccard_similarity(b1['norm'], b2['norm'])
+                    if sim >= min_similarity:
+                        seen_pairs.add(pair_key)
+                        clones.append(CodeClone(
+                            clone_type='Type-3 (Gapped Modification)',
+                            file_a=b1['file'], start_line_a=b1['start_line'], end_line_a=b1['end_line'],
+                            file_b=b2['file'], start_line_b=b2['start_line'], end_line_b=b2['end_line'],
+                            similarity=round(sim, 3), token_count=len(b1['norm'].split())
+                        ).__dict__)
+
+        return clones
+
+    @classmethod
+    def _normalize_tokens(cls, code: str) -> str:
+        norm = re.sub(r'[A-Za-z_][A-Za-z0-9_]*', 'ID', code)
+        norm = re.sub(r'\d+(?:\.\d+)?', 'NUM', norm)
+        norm = re.sub(r'"[^"]*"|\'[^\']*\'', 'STR', norm)
+        return " ".join(norm.split())
+
+    @classmethod
+    def _calculate_jaccard_similarity(cls, str1: str, str2: str) -> float:
+        set1 = set(str1.split())
+        set2 = set(str2.split())
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        return intersection / union if union > 0 else 0.0

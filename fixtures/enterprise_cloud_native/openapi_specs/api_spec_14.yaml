@@ -1,0 +1,54 @@
+# OpenAPI 3.1.0 Enterprise Specification for API Gateway Route 14
+openapi: 3.1.0
+info:
+  title: Enterprise Microservice API 14
+  version: 2.5.0
+  description: High-throughput enterprise REST interface for service domain 14
+paths:
+  /api/v1/domain-14/resources:
+    get:
+      summary: List all resources in domain 14
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Successful query response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceItem14"
+    post:
+      summary: Create resource in domain 14
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResourceItem14"
+      responses:
+        "201":
+          description: Resource created successfully
+components:
+  schemas:
+    ResourceItem14:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        score:
+          type: number
+        isActive:
+          type: boolean

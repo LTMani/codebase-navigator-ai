@@ -1,0 +1,42 @@
+# Kubernetes Microservice Deployment Manifest 24
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-service-24
+  labels:
+    app: enterprise-service-24
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: enterprise-service-24
+  template:
+    metadata:
+      labels:
+        app: enterprise-service-24
+    spec:
+      containers:
+      - name: enterprise-service-24
+        image: navigator/enterprise-service-24:2.4.0
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enterprise-service-24-svc
+spec:
+  selector:
+    app: enterprise-service-24
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

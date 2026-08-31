@@ -1,0 +1,97 @@
+#app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+#app-sidebar {
+    width: var(--sidebar-width);
+    height: 100%;
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition-normal);
+    z-index: 50;
+    flex-shrink: 0;
+}
+
+#app-sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+#app-main {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    overflow: hidden;
+    position: relative;
+}
+
+#app-header {
+    height: var(--header-height);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 40;
+    flex-shrink: 0;
+}
+
+#view-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    padding: 24px;
+}
+
+/* Landing / Full-screen view override */
+#view-container.fullscreen-view {
+    padding: 0;
+    overflow-y: auto;
+}
+
+/* Master-Detail Split Pane Layout */
+.split-pane-layout {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - var(--header-height) - 48px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.split-pane-sidebar {
+    width: 300px;
+    height: 100%;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.split-pane-content {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.split-pane-drawer {
+    width: 360px;
+    height: 100%;
+    border-left: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
